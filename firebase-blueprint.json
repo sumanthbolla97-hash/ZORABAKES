@@ -1,0 +1,150 @@
+{
+  "entities": {
+    "CartItem": {
+      "title": "CartItem",
+      "description": "An item in the user's shopping cart.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "quantity": { "type": "number" },
+        "img": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "quantity", "img"]
+    },
+    "Cart": {
+      "title": "Cart",
+      "description": "A user's shopping cart.",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/entities/CartItem" }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile data.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "createdAt"]
+    },
+    "Address": {
+      "title": "Address",
+      "description": "User shipping/billing address.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "addressLine1": { "type": "string" },
+        "addressLine2": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "pincode": { "type": "string" },
+        "landmark": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "formattedAddress": { "type": "string" },
+        "placeId": { "type": "string" },
+        "isDefault": { "type": "boolean" }
+      },
+      "required": ["fullName", "phone", "addressLine1", "city", "state", "pincode", "isDefault"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A user's order.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/entities/CartItem" }
+        },
+        "totalAmount": { "type": "number" },
+        "shippingAddress": { "$ref": "#/entities/Address" },
+        "paymentMethod": { "type": "string", "enum": ["COD"] },
+        "paymentStatus": { "type": "string", "enum": ["Pending", "Paid", "Failed"] },
+        "orderStatus": { "type": "string", "enum": ["Confirmed", "Preparing", "Packed", "Out for Delivery", "Delivered", "Cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "items", "totalAmount", "shippingAddress", "paymentMethod", "paymentStatus", "orderStatus", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A product in the store catalog.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "offerPrice": { "type": "number" },
+        "images": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ingredients": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "stock": { "type": "number" },
+        "SKU": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "description", "price", "images", "ingredients", "stock", "SKU", "category", "createdAt"]
+    },
+    "InventoryLog": {
+      "title": "InventoryLog",
+      "description": "Tracks changes to product stock levels.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "previousStock": { "type": "number" },
+        "newStock": { "type": "number" },
+        "quantityChanged": { "type": "number" },
+        "changeType": { "type": "string", "enum": ["restock", "adjustment", "sale"] },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "productName", "userId", "userEmail", "previousStock", "newStock", "quantityChanged", "changeType", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/inventory_logs/{logId}": {
+      "schema": "InventoryLog",
+      "description": "Stores all inventory change logs."
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Stores all products available in the store."
+    },
+    "/carts/{userId}": {
+      "schema": "Cart",
+      "description": "Stores the shopping cart for each user."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Stores all orders placed by users."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile information."
+    },
+    "/users/{userId}/addresses/{addressId}": {
+      "schema": "Address",
+      "description": "Stores addresses for a user."
+    }
+  }
+}

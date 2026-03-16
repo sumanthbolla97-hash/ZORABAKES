@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Minus, Plus, Star } from "lucide-react";
+import { useCart } from "../context/CartContext";
 
 export function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
+  const { addItem } = useCart();
+
+  const handleAddToCart = () => {
+    addItem({
+      id: "signature-vanilla-cupcake",
+      name: "Signature Vanilla Cupcake",
+      price: 4.50,
+      quantity: quantity,
+      img: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?q=80&w=1000&auto=format&fit=crop"
+    });
+    // Optional: Add a toast notification here
+  };
 
   return (
     <div className="container mx-auto px-6 py-12 md:px-12 md:py-24">
@@ -78,7 +91,7 @@ export function ProductDetail() {
               </div>
             </div>
             
-            <Button size="lg" className="w-full text-lg shadow-md">
+            <Button size="lg" className="w-full text-lg shadow-md" onClick={handleAddToCart}>
               Add to Box - ${(4.5 * quantity).toFixed(2)}
             </Button>
           </div>

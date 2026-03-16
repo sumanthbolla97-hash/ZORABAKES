@@ -1,7 +1,14 @@
 import { Link } from "react-router";
-import { ShoppingBag, Menu, Search } from "lucide-react";
+import { ShoppingBag, Menu, Search, User as UserIcon, LogOut } from "lucide-react";
+import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { logout } from "../../firebase";
 
 export function Navbar() {
+  const { items } = useCart();
+  const { user } = useAuth();
+  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[var(--color-zora-clay)] bg-[var(--color-zora-oat)]/90 backdrop-blur-md">
       <div className="container mx-auto flex h-24 items-center justify-between px-6 md:px-12">
@@ -29,12 +36,25 @@ export function Navbar() {
           <Link to="/contact" className="hidden md:block text-sm font-bold tracking-widest uppercase text-[var(--color-zora-ink)] hover:text-[var(--color-zora-stone)] transition-colors">
             Contact
           </Link>
-          <button className="text-[var(--color-zora-ink)] hover:text-[var(--color-zora-stone)] transition-colors relative">
+          
+          {user ? (
+            <Link to="/profile" className="text-[var(--color-zora-ink)] hover:text-[var(--color-zora-stone)] transition-colors hidden md:block" title="Profile">
+              <UserIcon className="h-5 w-5" />
+            </Link>
+          ) : (
+            <Link to="/login" className="text-[var(--color-zora-ink)] hover:text-[var(--color-zora-stone)] transition-colors hidden md:block" title="Login">
+              <UserIcon className="h-5 w-5" />
+            </Link>
+          )}
+
+          <Link to="/cart" className="text-[var(--color-zora-ink)] hover:text-[var(--color-zora-stone)] transition-colors relative">
             <ShoppingBag className="h-5 w-5" />
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-zora-blush)] text-[9px] font-bold text-[var(--color-zora-ink)] border border-[var(--color-zora-ink)]">
-              0
-            </span>
-          </button>
+            {itemCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-zora-blush)] text-[9px] font-bold text-[var(--color-zora-ink)] border border-[var(--color-zora-ink)]">
+                {itemCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
     </header>
