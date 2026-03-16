@@ -28,6 +28,7 @@ export function ProductDetail() {
               src="https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?q=80&w=1000&auto=format&fit=crop" 
               alt="Signature Vanilla Cupcake" 
               className="h-full w-full object-cover"
+              loading="lazy"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -38,6 +39,7 @@ export function ProductDetail() {
                   src="https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?q=80&w=1000&auto=format&fit=crop" 
                   alt={`Thumbnail ${i}`} 
                   className="h-full w-full object-cover opacity-70 hover:opacity-100 transition-opacity"
+                  loading="lazy"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -71,7 +73,8 @@ export function ProductDetail() {
             Our world-famous classic vanilla cupcake, topped with our signature pastel buttercream swirl. Baked fresh daily with real vanilla bean and a touch of wholesome millet flour for a tender, perfect crumb.
           </p>
 
-          <div className="mb-10 flex flex-col gap-6 border-y-2 border-[var(--color-zora-ink)]/10 py-8">
+          {/* Quantity Selector and Add to Cart Button */}
+          <div className="hidden md:flex flex-col gap-6 border-y-2 border-[var(--color-zora-ink)]/10 py-8">
             <div className="flex items-center gap-6">
               <span className="text-sm font-bold tracking-widest uppercase text-[var(--color-zora-ink)]">Quantity</span>
               <div className="flex items-center border-2 border-[var(--color-zora-ink)]/20 rounded-full overflow-hidden bg-white">
@@ -110,6 +113,34 @@ export function ProductDetail() {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Sticky Add to Cart Bar for Mobile */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-[var(--color-zora-ink)]/10 p-4 shadow-lg md:hidden">
+        <div className="container mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center border-2 border-[var(--color-zora-ink)]/20 rounded-full overflow-hidden bg-white h-12">
+            <button 
+              className="flex h-12 w-12 items-center justify-center text-[var(--color-zora-ink)] hover:bg-[var(--color-zora-blush)] transition-colors"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="flex h-12 w-12 items-center justify-center text-base font-bold text-[var(--color-zora-ink)]">{quantity}</span>
+            <button 
+              className="flex h-12 w-12 items-center justify-center text-[var(--color-zora-ink)] hover:bg-[var(--color-zora-blush)] transition-colors"
+              onClick={() => setQuantity(quantity + 1)}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          <Button 
+            size="lg" 
+            className="flex-1 text-lg shadow-md" 
+            onClick={handleAddToCart}
+          >
+            Add to Box - ${(4.5 * quantity).toFixed(2)}
+          </Button>
         </div>
       </div>
     </div>

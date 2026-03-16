@@ -35,6 +35,7 @@ export function Cart() {
                   src={item.img} 
                   alt={item.name} 
                   className="h-full w-full object-cover"
+              loading="lazy"
                   referrerPolicy="no-referrer"
                 />
               </div>

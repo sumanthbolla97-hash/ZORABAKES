@@ -8,6 +8,7 @@ export function About() {
             src="https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=2000&auto=format&fit=crop" 
             alt="Baking process" 
             className="h-full w-full object-cover mix-blend-overlay"
+          loading="lazy"
             referrerPolicy="no-referrer"
           />
         </div>
@@ -45,6 +46,7 @@ export function About() {
                 src="https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=1000&auto=format&fit=crop" 
                 alt="Artisan Baking" 
                 className="h-full w-full object-cover"
+            loading="lazy"
                 referrerPolicy="no-referrer"
               />
             </div>

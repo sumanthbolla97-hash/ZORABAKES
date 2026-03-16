@@ -38,6 +38,7 @@ export function Home() {
               src="https://images.unsplash.com/photo-1587668178277-295251f900ce?q=80&w=1974&auto=format&fit=crop" 
               alt="Delicious frosted cupcakes" 
               className="h-full w-full object-cover"
+          loading="lazy"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -105,6 +106,7 @@ export function Home() {
                     src={product.img} 
                     alt={product.name} 
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute bottom-0 left-0 w-full translate-y-full bg-[var(--color-zora-clay)]/90 backdrop-blur-sm py-4 text-center text-xs font-bold tracking-widest uppercase text-[var(--color-zora-ink)] transition-transform duration-300 group-hover:translate-y-0">
@@ -128,6 +130,7 @@ export function Home() {
             src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?q=80&w=2070&auto=format&fit=crop" 
             alt="Background texture" 
             className="h-full w-full object-cover mix-blend-overlay"
+        loading="lazy"
             referrerPolicy="no-referrer"
           />
         </div>

@@ -176,6 +176,7 @@ export function OrderList() {
                       <li key={idx} className="flex gap-4 items-center">
                         <img src={item.img} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
                         <div className="flex-1">
+                      loading="lazy"
                           <p className="text-[var(--color-zora-ink)] font-medium text-sm">{item.name}</p>
                           <p className="text-[var(--color-zora-stone)] text-xs">Qty: {item.quantity}</p>
                         </div>

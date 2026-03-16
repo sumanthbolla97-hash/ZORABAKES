@@ -43,6 +43,7 @@ export function Shop() {
                 src={product.img} 
                 alt={product.name} 
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute bottom-0 left-0 w-full translate-y-full bg-[var(--color-zora-blush)]/90 backdrop-blur-sm py-4 text-center text-xs font-bold tracking-widest uppercase text-[var(--color-zora-ink)] transition-transform duration-300 group-hover:translate-y-0">

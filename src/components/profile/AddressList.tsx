@@ -317,6 +317,7 @@ function AddressForm({ address, onCancel, onSave }: AddressFormProps) {
             <label className="mb-2 block text-xs font-bold tracking-widest uppercase text-[var(--color-zora-ink)]">Phone Number *</label>
             <input
               type="tel"
+              inputMode="numeric"
               name="phone"
               required
               value={formData.phone}
@@ -378,6 +379,7 @@ function AddressForm({ address, onCancel, onSave }: AddressFormProps) {
             <label className="mb-2 block text-xs font-bold tracking-widest uppercase text-[var(--color-zora-ink)]">PIN Code *</label>
             <input
               type="text"
+              inputMode="numeric"
               name="pincode"
               required
               value={formData.pincode}
