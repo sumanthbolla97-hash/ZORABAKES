@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, loginWithGoogle } from "../firebase";
+import { ref, set, update, serverTimestamp } from "firebase/database";
+import { auth, rtdb, loginWithGoogle } from "../firebase";
 
 export function Signup() {
   const [name, setName] = useState("");
@@ -20,8 +20,8 @@ export function Signup() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Create user profile in Firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), {
+      // Create user profile in RTDB
+      await set(ref(rtdb, `users/${userCredential.user.uid}`), {
         email: userCredential.user.email,
         name: name,
         createdAt: serverTimestamp()
@@ -39,13 +39,12 @@ export function Signup() {
     try {
       const user = await loginWithGoogle();
       if (user) {
-        // Create user profile in Firestore if it doesn't exist
-        // (In a real app, you might want to check if it exists first, but setDoc with merge: true is safe)
-        await setDoc(doc(db, "users", user.uid), {
+        // Create user profile in RTDB if it doesn't exist
+        await update(ref(rtdb, `users/${user.uid}`), {
           email: user.email,
           name: user.displayName || "Google User",
           createdAt: serverTimestamp()
-        }, { merge: true });
+        });
       }
       navigate("/");
     } catch (err: any) {

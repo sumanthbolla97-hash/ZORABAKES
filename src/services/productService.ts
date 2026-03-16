@@ -1,5 +1,5 @@
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, push, get, onValue, update, remove, serverTimestamp, set } from 'firebase/database';
+import { rtdb } from '../firebase';
 
 export interface Product {
   id?: string;
@@ -21,11 +21,13 @@ export const productService = {
    */
   createProduct: async (productData: Omit<Product, 'id' | 'createdAt'>): Promise<string> => {
     try {
-      const docRef = await addDoc(collection(db, 'products'), {
+      const productsRef = ref(rtdb, 'products');
+      const newProductRef = push(productsRef);
+      await set(newProductRef, {
         ...productData,
         createdAt: serverTimestamp()
       });
-      return docRef.id;
+      return newProductRef.key as string;
     } catch (error) {
       console.error("Error creating product:", error);
       throw error;
@@ -37,8 +39,8 @@ export const productService = {
    */
   updateProduct: async (productId: string, productData: Partial<Product>): Promise<void> => {
     try {
-      const productRef = doc(db, 'products', productId);
-      await updateDoc(productRef, productData);
+      const productRef = ref(rtdb, `products/${productId}`);
+      await update(productRef, productData);
     } catch (error) {
       console.error("Error updating product:", error);
       throw error;
@@ -50,8 +52,8 @@ export const productService = {
    */
   deleteProduct: async (productId: string): Promise<void> => {
     try {
-      const productRef = doc(db, 'products', productId);
-      await deleteDoc(productRef);
+      const productRef = ref(rtdb, `products/${productId}`);
+      await remove(productRef);
     } catch (error) {
       console.error("Error deleting product:", error);
       throw error;
@@ -63,12 +65,18 @@ export const productService = {
    */
   getAllProducts: async (): Promise<Product[]> => {
     try {
-      const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
+      const productsRef = ref(rtdb, 'products');
+      const snapshot = await get(productsRef);
+      if (!snapshot.exists()) return [];
+
+      const products: Product[] = [];
+      snapshot.forEach((childSnapshot) => {
+        products.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        });
+      });
+      return products.sort((a, b) => b.createdAt - a.createdAt);
     } catch (error) {
       console.error("Error fetching products:", error);
       throw error;
@@ -79,13 +87,20 @@ export const productService = {
    * Subscribes to real-time updates for all products
    */
   subscribeToProducts: (callback: (products: Product[]) => void) => {
-    const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const products = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      callback(products);
+    const productsRef = ref(rtdb, 'products');
+    return onValue(productsRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([]);
+        return;
+      }
+      const products: Product[] = [];
+      snapshot.forEach((childSnapshot) => {
+        products.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        });
+      });
+      callback(products.sort((a, b) => b.createdAt - a.createdAt));
     }, (error) => {
       console.error("Error subscribing to products:", error);
     });
@@ -96,8 +111,8 @@ export const productService = {
    */
   updateStock: async (productId: string, newStock: number): Promise<void> => {
     try {
-      const productRef = doc(db, 'products', productId);
-      await updateDoc(productRef, { stock: newStock });
+      const productRef = ref(rtdb, `products/${productId}`);
+      await update(productRef, { stock: newStock });
     } catch (error) {
       console.error("Error updating stock:", error);
       throw error;

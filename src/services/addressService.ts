@@ -1,5 +1,5 @@
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, push, get, update, remove, set } from 'firebase/database';
+import { rtdb } from '../firebase';
 
 export interface Address {
   id?: string;
@@ -20,74 +20,86 @@ export interface Address {
 
 export const addressService = {
   getAddresses: async (userId: string): Promise<Address[]> => {
-    const addressesRef = collection(db, 'users', userId, 'addresses');
-    const snapshot = await getDocs(addressesRef);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Address));
+    const addressesRef = ref(rtdb, `users/${userId}/addresses`);
+    const snapshot = await get(addressesRef);
+    if (!snapshot.exists()) return [];
+    
+    const addresses: Address[] = [];
+    snapshot.forEach((childSnapshot) => {
+      addresses.push({ id: childSnapshot.key, ...childSnapshot.val() } as Address);
+    });
+    return addresses;
   },
 
   addAddress: async (userId: string, address: Address): Promise<string> => {
-    const batch = writeBatch(db);
-    const addressesRef = collection(db, 'users', userId, 'addresses');
+    const addressesRef = ref(rtdb, `users/${userId}/addresses`);
     
     // If setting as default, unset others
     if (address.isDefault) {
-      const q = query(addressesRef, where('isDefault', '==', true));
-      const snapshot = await getDocs(q);
-      snapshot.forEach((docSnap) => {
-        batch.update(docSnap.ref, { isDefault: false });
-      });
+      const snapshot = await get(addressesRef);
+      if (snapshot.exists()) {
+        const updates: any = {};
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().isDefault) {
+            updates[`${childSnapshot.key}/isDefault`] = false;
+          }
+        });
+        if (Object.keys(updates).length > 0) {
+          await update(addressesRef, updates);
+        }
+      }
     }
 
-    const newDocRef = doc(addressesRef);
-    batch.set(newDocRef, address);
-    await batch.commit();
-    
-    return newDocRef.id;
+    const newAddressRef = push(addressesRef);
+    await set(newAddressRef, address);
+    return newAddressRef.key as string;
   },
 
   updateAddress: async (userId: string, addressId: string, address: Partial<Address>): Promise<void> => {
-    const batch = writeBatch(db);
-    const addressesRef = collection(db, 'users', userId, 'addresses');
+    const addressesRef = ref(rtdb, `users/${userId}/addresses`);
     
     // If setting as default, unset others
     if (address.isDefault) {
-      const q = query(addressesRef, where('isDefault', '==', true));
-      const snapshot = await getDocs(q);
-      snapshot.forEach((docSnap) => {
-        if (docSnap.id !== addressId) {
-          batch.update(docSnap.ref, { isDefault: false });
+      const snapshot = await get(addressesRef);
+      if (snapshot.exists()) {
+        const updates: any = {};
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.key !== addressId && childSnapshot.val().isDefault) {
+            updates[`${childSnapshot.key}/isDefault`] = false;
+          }
+        });
+        if (Object.keys(updates).length > 0) {
+          await update(addressesRef, updates);
         }
-      });
+      }
     }
 
-    const docRef = doc(addressesRef, addressId);
-    batch.update(docRef, address);
-    await batch.commit();
+    const addressRef = ref(rtdb, `users/${userId}/addresses/${addressId}`);
+    await update(addressRef, address);
   },
 
   deleteAddress: async (userId: string, addressId: string): Promise<void> => {
-    const docRef = doc(db, 'users', userId, 'addresses', addressId);
-    await deleteDoc(docRef);
+    const addressRef = ref(rtdb, `users/${userId}/addresses/${addressId}`);
+    await remove(addressRef);
   },
 
   setDefaultAddress: async (userId: string, addressId: string): Promise<void> => {
-    const batch = writeBatch(db);
-    const addressesRef = collection(db, 'users', userId, 'addresses');
+    const addressesRef = ref(rtdb, `users/${userId}/addresses`);
+    const snapshot = await get(addressesRef);
     
-    // Unset all existing defaults
-    const q = query(addressesRef, where('isDefault', '==', true));
-    const snapshot = await getDocs(q);
-    snapshot.forEach((docSnap) => {
-      if (docSnap.id !== addressId) {
-        batch.update(docSnap.ref, { isDefault: false });
+    if (snapshot.exists()) {
+      const updates: any = {};
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.key === addressId) {
+          updates[`${childSnapshot.key}/isDefault`] = true;
+        } else if (childSnapshot.val().isDefault) {
+          updates[`${childSnapshot.key}/isDefault`] = false;
+        }
+      });
+      if (Object.keys(updates).length > 0) {
+        await update(addressesRef, updates);
       }
-    });
-
-    // Set new default
-    const docRef = doc(addressesRef, addressId);
-    batch.update(docRef, { isDefault: true });
-    
-    await batch.commit();
+    }
   },
 
   reverseGeocode: async (lat: number, lng: number): Promise<any> => {

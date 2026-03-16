@@ -1,5 +1,5 @@
-import { collection, serverTimestamp, getDocs, query, where, orderBy, onSnapshot, doc, updateDoc, writeBatch, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, push, get, onValue, update, serverTimestamp, query, orderByChild, equalTo } from 'firebase/database';
+import { rtdb } from '../firebase';
 import { CartItem } from '../context/CartContext';
 import { Address } from './addressService';
 
@@ -34,10 +34,10 @@ export const orderService = {
       if (!items || items.length === 0) throw new Error("Cart is empty");
       if (!shippingAddress) throw new Error("Shipping address is required");
 
-      const batch = writeBatch(db);
+      const updates: any = {};
       
       // 1. Create the order document
-      const orderRef = doc(collection(db, 'orders'));
+      const orderRef = push(ref(rtdb, 'orders'));
       const orderData = {
         userId,
         items,
@@ -48,28 +48,28 @@ export const orderService = {
         orderStatus: 'Confirmed' as OrderStatus,
         createdAt: serverTimestamp()
       };
-      batch.set(orderRef, orderData);
+      updates[`orders/${orderRef.key}`] = orderData;
 
       // 2. Decrement stock for each item and create inventory logs
       for (const item of items) {
-        const productRef = doc(db, 'products', item.productId);
-        const productSnap = await getDoc(productRef);
+        const productRef = ref(rtdb, `products/${item.productId}`);
+        const productSnap = await get(productRef);
         
         if (!productSnap.exists()) {
           throw new Error(`Product ${item.name} not found`);
         }
         
-        const currentStock = productSnap.data().stock;
+        const currentStock = productSnap.val().stock;
         if (currentStock < item.quantity) {
           throw new Error(`Insufficient stock for ${item.name}`);
         }
 
         const newStock = currentStock - item.quantity;
-        batch.update(productRef, { stock: newStock });
+        updates[`products/${item.productId}/stock`] = newStock;
 
         // Create inventory log for the sale
-        const logRef = doc(collection(db, 'inventory_logs'));
-        batch.set(logRef, {
+        const logRef = push(ref(rtdb, 'inventory_logs'));
+        updates[`inventory_logs/${logRef.key}`] = {
           productId: item.productId,
           productName: item.name,
           userId,
@@ -78,13 +78,13 @@ export const orderService = {
           newStock: newStock,
           quantityChanged: -item.quantity,
           changeType: 'sale',
-          reason: `Order placed: ${orderRef.id}`,
+          reason: `Order placed: ${orderRef.key}`,
           createdAt: serverTimestamp()
-        });
+        };
       }
 
-      await batch.commit();
-      return orderRef.id;
+      await update(ref(rtdb), updates);
+      return orderRef.key as string;
     } catch (error) {
       console.error("Error creating order:", error);
       throw error;
@@ -98,17 +98,16 @@ export const orderService = {
     try {
       if (!userId) throw new Error("User ID is required");
       
-      const q = query(
-        collection(db, 'orders'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
+      const q = query(ref(rtdb, 'orders'), orderByChild('userId'), equalTo(userId));
+      const snapshot = await get(q);
       
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Order[];
+      if (!snapshot.exists()) return [];
+      
+      const orders: Order[] = [];
+      snapshot.forEach((childSnapshot) => {
+        orders.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      });
+      return orders.sort((a, b) => b.createdAt - a.createdAt);
     } catch (error) {
       console.error("Error fetching user orders:", error);
       throw error;
@@ -121,18 +120,18 @@ export const orderService = {
   subscribeToUserOrders: (userId: string, callback: (orders: Order[]) => void) => {
     if (!userId) return () => {};
 
-    const q = query(
-      collection(db, 'orders'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
+    const q = query(ref(rtdb, 'orders'), orderByChild('userId'), equalTo(userId));
 
-    return onSnapshot(q, (snapshot) => {
-      const orders = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Order[];
-      callback(orders);
+    return onValue(q, (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([]);
+        return;
+      }
+      const orders: Order[] = [];
+      snapshot.forEach((childSnapshot) => {
+        orders.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      });
+      callback(orders.sort((a, b) => b.createdAt - a.createdAt));
     }, (error) => {
       console.error("Error subscribing to user orders:", error);
     });
@@ -143,10 +142,8 @@ export const orderService = {
    */
   updateOrderStatus: async (orderId: string, status: OrderStatus): Promise<void> => {
     try {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, {
-        orderStatus: status
-      });
+      const orderRef = ref(rtdb, `orders/${orderId}`);
+      await update(orderRef, { orderStatus: status });
     } catch (error) {
       console.error("Error updating order status:", error);
       throw error;
@@ -157,17 +154,18 @@ export const orderService = {
    * Subscribes to real-time updates for ALL orders (Admin only)
    */
   subscribeToAllOrders: (callback: (orders: Order[]) => void) => {
-    const q = query(
-      collection(db, 'orders'),
-      orderBy('createdAt', 'desc')
-    );
+    const ordersRef = ref(rtdb, 'orders');
 
-    return onSnapshot(q, (snapshot) => {
-      const orders = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Order[];
-      callback(orders);
+    return onValue(ordersRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([]);
+        return;
+      }
+      const orders: Order[] = [];
+      snapshot.forEach((childSnapshot) => {
+        orders.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      });
+      callback(orders.sort((a, b) => b.createdAt - a.createdAt));
     }, (error) => {
       console.error("Error subscribing to all orders:", error);
     });
@@ -178,11 +176,11 @@ export const orderService = {
    */
   bulkUpdateOrderStatus: async (orderIds: string[], status: OrderStatus): Promise<void> => {
     try {
-      const promises = orderIds.map(orderId => {
-        const orderRef = doc(db, 'orders', orderId);
-        return updateDoc(orderRef, { orderStatus: status });
+      const updates: any = {};
+      orderIds.forEach(orderId => {
+        updates[`orders/${orderId}/orderStatus`] = status;
       });
-      await Promise.all(promises);
+      await update(ref(rtdb), updates);
     } catch (error) {
       console.error("Error bulk updating order status:", error);
       throw error;

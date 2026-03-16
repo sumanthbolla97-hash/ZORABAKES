@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { ref, get, set, onValue, serverTimestamp } from 'firebase/database';
 import { User } from 'firebase/auth';
-import { db } from '../firebase';
+import { rtdb } from '../firebase';
 import { useAuth } from './AuthContext';
 
 export interface CartItem {
@@ -46,12 +46,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // User logged in: Merge local cart with remote cart
         const localCart = getLocalCart();
         try {
-          const cartRef = doc(db, 'carts', user.uid);
-          const cartSnap = await getDoc(cartRef);
+          const cartRef = ref(rtdb, `carts/${user.uid}`);
+          const cartSnap = await get(cartRef);
           
           let remoteItems: CartItem[] = [];
           if (cartSnap.exists()) {
-            remoteItems = cartSnap.data().items || [];
+            remoteItems = cartSnap.val().items || [];
           }
 
           // Merge logic: If local items exist, add them to remote (or overwrite if you prefer)
@@ -66,8 +66,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             }
           });
 
-          // Save merged cart to Firestore
-          await setDoc(cartRef, {
+          // Save merged cart to RTDB
+          await set(cartRef, {
             items: mergedItems,
             updatedAt: serverTimestamp()
           });
@@ -89,19 +89,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     syncCart();
   }, [user, isAuthReady]);
 
-  // 2. Listen to Firestore Cart changes (if logged in)
+  // 2. Listen to RTDB Cart changes (if logged in)
   useEffect(() => {
     if (!isAuthReady || !user) return;
 
-    const cartRef = doc(db, 'carts', user.uid);
-    const unsubscribe = onSnapshot(cartRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setItems(docSnap.data().items || []);
+    const cartRef = ref(rtdb, `carts/${user.uid}`);
+    const unsubscribe = onValue(cartRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setItems(snapshot.val().items || []);
       } else {
         setItems([]);
       }
     }, (error) => {
-      console.error("Firestore cart listener error:", error);
+      console.error("RTDB cart listener error:", error);
     });
 
     return () => unsubscribe();
@@ -117,18 +117,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Helper to save cart (either to Firestore or LocalStorage)
+  // Helper to save cart (either to RTDB or LocalStorage)
   const saveCart = async (newItems: CartItem[]) => {
     setItems(newItems);
     if (user) {
       try {
-        const cartRef = doc(db, 'carts', user.uid);
-        await setDoc(cartRef, {
+        const cartRef = ref(rtdb, `carts/${user.uid}`);
+        await set(cartRef, {
           items: newItems,
           updatedAt: serverTimestamp()
         });
       } catch (error) {
-        console.error("Error saving cart to Firestore:", error);
+        console.error("Error saving cart to RTDB:", error);
       }
     } else {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newItems));

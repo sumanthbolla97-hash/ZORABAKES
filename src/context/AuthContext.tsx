@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { ref, onValue } from 'firebase/database';
+import { auth, rtdb } from '../firebase';
 
 export interface UserProfile {
   name: string;
@@ -42,9 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
     
-    const unsubscribeProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
-      if (docSnap.exists()) {
-        setUserProfile(docSnap.data() as UserProfile);
+    const unsubscribeProfile = onValue(ref(rtdb, `users/${user.uid}`), (snapshot) => {
+      if (snapshot.exists()) {
+        setUserProfile(snapshot.val() as UserProfile);
       } else {
         setUserProfile(null);
       }

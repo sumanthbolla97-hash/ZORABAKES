@@ -1,5 +1,5 @@
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, onSnapshot, doc, updateDoc, writeBatch, where } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, push, get, update, serverTimestamp, query, orderByChild, equalTo } from 'firebase/database';
+import { rtdb } from '../firebase';
 
 export interface InventoryLog {
   id?: string;
@@ -30,15 +30,14 @@ export const inventoryService = {
     reason?: string
   ): Promise<void> => {
     try {
-      const batch = writeBatch(db);
+      const updates: any = {};
 
       // 1. Update product stock
-      const productRef = doc(db, 'products', productId);
-      batch.update(productRef, { stock: newStock });
+      updates[`products/${productId}/stock`] = newStock;
 
       // 2. Create inventory log
-      const logRef = doc(collection(db, 'inventory_logs'));
-      batch.set(logRef, {
+      const logRef = push(ref(rtdb, 'inventory_logs'));
+      updates[`inventory_logs/${logRef.key}`] = {
         productId,
         productName,
         userId,
@@ -49,9 +48,9 @@ export const inventoryService = {
         changeType,
         reason: reason || '',
         createdAt: serverTimestamp()
-      });
+      };
 
-      await batch.commit();
+      await update(ref(rtdb), updates);
     } catch (error) {
       console.error("Error updating stock with log:", error);
       throw error;
@@ -63,25 +62,24 @@ export const inventoryService = {
    */
   getInventoryHistory: async (productId?: string): Promise<InventoryLog[]> => {
     try {
-      let q;
+      let logsRef;
       if (productId) {
-        q = query(
-          collection(db, 'inventory_logs'),
-          where('productId', '==', productId),
-          orderBy('createdAt', 'desc')
-        );
+        logsRef = query(ref(rtdb, 'inventory_logs'), orderByChild('productId'), equalTo(productId));
       } else {
-        q = query(
-          collection(db, 'inventory_logs'),
-          orderBy('createdAt', 'desc')
-        );
+        logsRef = ref(rtdb, 'inventory_logs');
       }
       
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as InventoryLog[];
+      const snapshot = await get(logsRef);
+      if (!snapshot.exists()) return [];
+
+      const logs: InventoryLog[] = [];
+      snapshot.forEach((childSnapshot) => {
+        logs.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        });
+      });
+      return logs.sort((a, b) => b.createdAt - a.createdAt);
     } catch (error) {
       console.error("Error fetching inventory history:", error);
       throw error;
