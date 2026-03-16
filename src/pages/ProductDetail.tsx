@@ -53,9 +53,9 @@ export function ProductDetail() {
             <span>Bestseller</span>
           </div>
           
-          <h1 className="mb-4 font-serif text-5xl font-bold text-[var(--color-zora-ink)] md:text-6xl">Signature Vanilla Cupcake</h1>
+          <h1 className="mb-4 font-serif text-4xl font-bold leading-tight text-[var(--color-zora-ink)] md:text-6xl">Signature Vanilla Cupcake</h1>
           
-          <div className="mb-6 flex items-center gap-4">
+          <div className="mb-6 flex flex-wrap items-start gap-x-4 gap-y-2 md:items-center">
             <span className="text-3xl font-bold text-[var(--color-zora-ink)]">$4.50</span>
             <div className="flex items-center gap-1 text-[var(--color-zora-stone)]">
               <div className="flex text-[var(--color-zora-clay)]">
@@ -63,11 +63,11 @@ export function ProductDetail() {
                   <Star key={star} className="h-5 w-5 fill-current" />
                 ))}
               </div>
-              <span className="text-sm font-medium ml-2">(128 Reviews)</span>
+              <span className="text-sm font-medium ml-2 pt-0.5">(128 Reviews)</span>
             </div>
           </div>
 
-          <p className="mb-10 text-lg font-medium leading-relaxed text-[var(--color-zora-stone)]">
+          <p className="mb-10 text-base font-medium leading-relaxed text-[var(--color-zora-stone)] md:text-lg">
             Our world-famous classic vanilla cupcake, topped with our signature pastel buttercream swirl. Baked fresh daily with real vanilla bean and a touch of wholesome millet flour for a tender, perfect crumb.
           </p>
 

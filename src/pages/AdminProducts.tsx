@@ -135,9 +135,9 @@ export function AdminProducts() {
   };
 
   const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.SKU.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.SKU || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.category || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (!isAdmin) return null;
@@ -168,86 +168,155 @@ export function AdminProducts() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5 overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[1000px]">
-          <thead>
-            <tr className="border-b border-[var(--color-zora-ink)]/10 bg-[var(--color-zora-oat)]/50">
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Product</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Category & SKU</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Price</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Stock</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)] text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-[var(--color-zora-stone)]">
-                  No products found.
-                </td>
+      <div className="bg-white rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5 overflow-hidden">
+        
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr className="border-b border-[var(--color-zora-ink)]/10 bg-[var(--color-zora-oat)]/50">
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Product</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Category & SKU</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Price</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Stock</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)] text-right">Actions</th>
               </tr>
-            ) : (
-              filteredProducts.map(product => (
-                <tr key={product.id} className="border-b border-[var(--color-zora-ink)]/5 hover:bg-[var(--color-zora-oat)]/30 transition-colors">
-                  <td className="p-4 flex items-center gap-4">
-                    {product.images.length > 0 ? (
-                      <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-cover rounded-lg border border-[var(--color-zora-ink)]/10" />
-                    ) : (
-                      <div className="w-12 h-12 bg-[var(--color-zora-oat)] rounded-lg flex items-center justify-center border border-[var(--color-zora-ink)]/10">
-                        <ImageIcon className="h-5 w-5 text-[var(--color-zora-stone)]/50" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-bold text-[var(--color-zora-ink)]">{product.name}</p>
-                      <p className="text-xs text-[var(--color-zora-stone)] line-clamp-1 max-w-xs">{product.description}</p>
-                    </div>
-                  </td>
-                  <td className="p-4 align-middle">
-                    <span className="inline-flex items-center gap-1 text-xs font-medium bg-[var(--color-zora-oat)] px-2 py-1 rounded-md text-[var(--color-zora-ink)] mb-1">
-                      <Tag className="h-3 w-3" /> {product.category}
-                    </span>
-                    <p className="text-xs font-mono text-[var(--color-zora-stone)]">{product.SKU}</p>
-                  </td>
-                  <td className="p-4 align-middle">
-                    <p className="font-bold text-[var(--color-zora-ink)]">${product.price.toFixed(2)}</p>
-                    {product.offerPrice && (
-                      <p className="text-xs text-[var(--color-zora-blush)] font-medium line-through">${product.offerPrice.toFixed(2)}</p>
-                    )}
-                  </td>
-                  <td className="p-4 align-middle">
-                    <div className="flex items-center gap-2">
-                      <Package className={`h-4 w-4 ${product.stock > 10 ? 'text-green-500' : product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`} />
-                      <input 
-                        type="number" 
-                        value={product.stock}
-                        onChange={(e) => handleStockUpdate(product.id!, parseInt(e.target.value) || 0)}
-                        className="w-16 px-2 py-1 text-sm rounded border border-[var(--color-zora-ink)]/20 focus:outline-none focus:border-[var(--color-zora-ink)]"
-                      />
-                    </div>
-                  </td>
-                  <td className="p-4 align-middle text-right">
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => handleOpenModal(product)}
-                        className="p-2 text-[var(--color-zora-stone)] hover:text-[var(--color-zora-ink)] hover:bg-[var(--color-zora-oat)] rounded-lg transition-colors"
-                        title="Edit Product"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(product.id!)}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete Product"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+            </thead>
+            <tbody>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-[var(--color-zora-stone)]">
+                    No products found.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredProducts.map(product => (
+                  <tr key={product.id} className="border-b border-[var(--color-zora-ink)]/5 hover:bg-[var(--color-zora-oat)]/30 transition-colors">
+                    <td className="p-4 flex items-center gap-4">
+                      {product.images.length > 0 ? (
+                        <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-cover rounded-lg border border-[var(--color-zora-ink)]/10" />
+                      ) : (
+                        <div className="w-12 h-12 bg-[var(--color-zora-oat)] rounded-lg flex items-center justify-center border border-[var(--color-zora-ink)]/10">
+                          <ImageIcon className="h-5 w-5 text-[var(--color-zora-stone)]/50" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-[var(--color-zora-ink)]">{product.name}</p>
+                        <p className="text-xs text-[var(--color-zora-stone)] line-clamp-1 max-w-xs">{product.description}</p>
+                      </div>
+                    </td>
+                    <td className="p-4 align-middle">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium bg-[var(--color-zora-oat)] px-2 py-1 rounded-md text-[var(--color-zora-ink)] mb-1">
+                        <Tag className="h-3 w-3" /> {product.category}
+                      </span>
+                      <p className="text-xs font-mono text-[var(--color-zora-stone)]">{product.SKU}</p>
+                    </td>
+                    <td className="p-4 align-middle">
+                      <p className="font-bold text-[var(--color-zora-ink)]">${product.price.toFixed(2)}</p>
+                      {product.offerPrice && (
+                        <p className="text-xs text-[var(--color-zora-blush)] font-medium line-through">${product.offerPrice.toFixed(2)}</p>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="flex items-center gap-2">
+                        <Package className={`h-4 w-4 ${product.stock > 10 ? 'text-green-500' : product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`} />
+                        <input 
+                          type="number" 
+                          value={product.stock}
+                          onChange={(e) => handleStockUpdate(product.id!, parseInt(e.target.value) || 0)}
+                          className="w-16 px-2 py-1 text-sm rounded border border-[var(--color-zora-ink)]/20 focus:outline-none focus:border-[var(--color-zora-ink)]"
+                        />
+                      </div>
+                    </td>
+                    <td className="p-4 align-middle text-right">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleOpenModal(product)}
+                          className="p-2 text-[var(--color-zora-stone)] hover:text-[var(--color-zora-ink)] hover:bg-[var(--color-zora-oat)] rounded-lg transition-colors"
+                          title="Edit Product"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(product.id!)}
+                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden flex flex-col divide-y divide-[var(--color-zora-ink)]/10">
+          {filteredProducts.length === 0 ? (
+            <div className="p-8 text-center text-[var(--color-zora-stone)]">
+              No products found.
+            </div>
+          ) : (
+            filteredProducts.map(product => (
+              <div key={product.id} className="p-5 flex flex-col gap-4 hover:bg-[var(--color-zora-oat)]/30 transition-colors">
+                <div className="flex gap-4 items-start">
+                  {product.images.length > 0 ? (
+                    <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded-xl border border-[var(--color-zora-ink)]/10 shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 bg-[var(--color-zora-oat)] rounded-xl flex items-center justify-center border border-[var(--color-zora-ink)]/10 shrink-0">
+                      <ImageIcon className="h-6 w-6 text-[var(--color-zora-stone)]/50" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[var(--color-zora-ink)] text-base truncate">{product.name}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1 mb-1">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-[var(--color-zora-oat)] px-2 py-0.5 rounded-md text-[var(--color-zora-ink)]">
+                        <Tag className="h-3 w-3" /> {product.category}
+                      </span>
+                      <span className="text-[10px] font-mono text-[var(--color-zora-stone)]">{product.SKU}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="font-bold text-[var(--color-zora-ink)]">${product.price.toFixed(2)}</p>
+                      {product.offerPrice && (
+                        <p className="text-xs text-[var(--color-zora-blush)] font-medium line-through">${product.offerPrice.toFixed(2)}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--color-zora-ink)]/5">
+                  <div className="flex items-center gap-2">
+                    <Package className={`h-4 w-4 ${product.stock > 10 ? 'text-green-500' : product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`} />
+                    <span className="text-sm font-bold text-[var(--color-zora-stone)]">Stock:</span>
+                    <input 
+                      type="number" 
+                      value={product.stock}
+                      onChange={(e) => handleStockUpdate(product.id!, parseInt(e.target.value) || 0)}
+                      className="w-16 px-2 py-1 text-sm rounded border border-[var(--color-zora-ink)]/20 focus:outline-none focus:border-[var(--color-zora-ink)] bg-white"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button 
+                      onClick={() => handleOpenModal(product)}
+                      className="p-2 bg-white border border-[var(--color-zora-ink)]/10 text-[var(--color-zora-stone)] hover:text-[var(--color-zora-ink)] rounded-lg transition-colors"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(product.id!)}
+                      className="p-2 bg-white border border-red-100 text-red-500 hover:text-red-700 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Add/Edit Modal */}

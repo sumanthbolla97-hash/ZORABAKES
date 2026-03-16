@@ -107,8 +107,8 @@ export function AdminInventory() {
   };
 
   const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.SKU.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.SKU || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const lowStockProducts = products.filter(p => p.stock <= 10);
@@ -155,70 +155,116 @@ export function AdminInventory() {
         </div>
       )}
 
-      <div className="bg-white rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5 overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead>
-            <tr className="border-b border-[var(--color-zora-ink)]/10 bg-[var(--color-zora-oat)]/50">
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Product & SKU</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Current Stock</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Status</th>
-              <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)] text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="p-8 text-center text-[var(--color-zora-stone)]">
-                  No products found.
-                </td>
+      <div className="bg-white rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5 overflow-hidden">
+        
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr className="border-b border-[var(--color-zora-ink)]/10 bg-[var(--color-zora-oat)]/50">
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Product & SKU</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Current Stock</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">Status</th>
+                <th className="p-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)] text-right">Actions</th>
               </tr>
-            ) : (
-              filteredProducts.map(product => (
-                <tr key={product.id} className="border-b border-[var(--color-zora-ink)]/5 hover:bg-[var(--color-zora-oat)]/30 transition-colors">
-                  <td className="p-4 align-middle">
-                    <p className="font-bold text-[var(--color-zora-ink)]">{product.name}</p>
-                    <p className="text-xs font-mono text-[var(--color-zora-stone)]">{product.SKU}</p>
-                  </td>
-                  <td className="p-4 align-middle">
-                    <div className="flex items-center gap-2">
-                      <Package className={`h-4 w-4 ${product.stock > 10 ? 'text-green-500' : product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`} />
-                      <span className="font-bold text-lg text-[var(--color-zora-ink)]">{product.stock}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 align-middle">
-                    {product.stock === 0 ? (
-                      <span className="inline-flex items-center text-xs font-medium bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full">Out of Stock</span>
-                    ) : product.stock <= 10 ? (
-                      <span className="inline-flex items-center text-xs font-medium bg-yellow-100 text-yellow-800 px-2.5 py-0.5 rounded-full">Low Stock</span>
-                    ) : (
-                      <span className="inline-flex items-center text-xs font-medium bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full">In Stock</span>
-                    )}
-                  </td>
-                  <td className="p-4 align-middle text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        onClick={() => handleOpenAdjust(product)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8"
-                      >
-                        Adjust Stock
-                      </Button>
-                      <Button 
-                        onClick={() => handleOpenHistory(product)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8"
-                      >
-                        <History className="h-3 w-3 mr-1" /> History
-                      </Button>
-                    </div>
+            </thead>
+            <tbody>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-[var(--color-zora-stone)]">
+                    No products found.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredProducts.map(product => (
+                  <tr key={product.id} className="border-b border-[var(--color-zora-ink)]/5 hover:bg-[var(--color-zora-oat)]/30 transition-colors">
+                    <td className="p-4 align-middle">
+                      <p className="font-bold text-[var(--color-zora-ink)]">{product.name}</p>
+                      <p className="text-xs font-mono text-[var(--color-zora-stone)]">{product.SKU}</p>
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="flex items-center gap-2">
+                        <Package className={`h-4 w-4 ${product.stock > 10 ? 'text-green-500' : product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`} />
+                        <span className="font-bold text-lg text-[var(--color-zora-ink)]">{product.stock}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 align-middle">
+                      {product.stock === 0 ? (
+                        <span className="inline-flex items-center text-xs font-medium bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full">Out of Stock</span>
+                      ) : product.stock <= 10 ? (
+                        <span className="inline-flex items-center text-xs font-medium bg-yellow-100 text-yellow-800 px-2.5 py-0.5 rounded-full">Low Stock</span>
+                      ) : (
+                        <span className="inline-flex items-center text-xs font-medium bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full">In Stock</span>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          onClick={() => handleOpenAdjust(product)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8"
+                        >
+                          Adjust Stock
+                        </Button>
+                        <Button 
+                          onClick={() => handleOpenHistory(product)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8"
+                        >
+                          <History className="h-3 w-3 mr-1" /> History
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden flex flex-col divide-y divide-[var(--color-zora-ink)]/10">
+          {filteredProducts.length === 0 ? (
+            <div className="p-8 text-center text-[var(--color-zora-stone)]">
+              No products found.
+            </div>
+          ) : (
+            filteredProducts.map(product => (
+              <div key={product.id} className="p-5 flex flex-col gap-4 hover:bg-[var(--color-zora-oat)]/30 transition-colors">
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <p className="font-bold text-[var(--color-zora-ink)] text-base">{product.name}</p>
+                    <p className="text-xs font-mono text-[var(--color-zora-stone)] mt-0.5">{product.SKU}</p>
+                  </div>
+                  {product.stock === 0 ? (
+                    <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-800 px-2 py-1 rounded-md shrink-0">Out of Stock</span>
+                  ) : product.stock <= 10 ? (
+                    <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md shrink-0">Low Stock</span>
+                  ) : (
+                    <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800 px-2 py-1 rounded-md shrink-0">In Stock</span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--color-zora-ink)]/5">
+                  <div className="flex items-center gap-2">
+                    <Package className={`h-4 w-4 ${product.stock > 10 ? 'text-green-500' : product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`} />
+                    <span className="font-bold text-lg text-[var(--color-zora-ink)]">{product.stock}</span>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button onClick={() => handleOpenAdjust(product)} variant="outline" size="sm" className="text-xs h-8">
+                      Adjust
+                    </Button>
+                    <Button onClick={() => handleOpenHistory(product)} variant="outline" size="sm" className="text-xs h-8 px-2" title="View History">
+                      <History className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Adjust Stock Modal */}

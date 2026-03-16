@@ -72,7 +72,7 @@ export function OrderList() {
 
   if (orders.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5 text-center py-16">
+      <div className="bg-white rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5 text-center px-6 py-12 md:px-8 md:py-16">
         <Package className="h-16 w-16 mx-auto text-[var(--color-zora-stone)]/50 mb-4" />
         <h2 className="font-serif text-2xl font-bold text-[var(--color-zora-ink)] mb-2">No Orders Yet</h2>
         <p className="text-[var(--color-zora-stone)]">You haven't placed any orders with us yet.</p>
@@ -92,7 +92,7 @@ export function OrderList() {
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <p className="text-sm font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">
-                    Order #{order.id?.slice(-6).toUpperCase()}
+                    Order #{order.id?.slice(-6)?.toUpperCase() || 'UNKNOWN'}
                   </p>
                   <span className={`px-2 py-0.5 text-xs font-bold uppercase tracking-wider rounded-full ${
                     order.orderStatus === 'Delivered' ? 'bg-green-100 text-green-700' :
@@ -109,7 +109,7 @@ export function OrderList() {
                 </p>
               </div>
               <div className="text-left md:text-right flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto">
-                <p className="font-serif text-2xl font-bold text-[var(--color-zora-ink)]">${order.totalAmount.toFixed(2)}</p>
+                <p className="font-serif text-xl font-bold text-[var(--color-zora-ink)] md:text-2xl">${order.totalAmount.toFixed(2)}</p>
                 <p className="text-sm font-medium text-[var(--color-zora-stone)]">{order.items.length} item(s)</p>
               </div>
             </div>

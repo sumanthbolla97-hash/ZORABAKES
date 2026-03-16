@@ -52,7 +52,7 @@ export const orderService = {
 
       // 2. Decrement stock for each item and create inventory logs
       for (const item of items) {
-        const productRef = ref(rtdb, `products/${item.productId}`);
+        const productRef = ref(rtdb, `products/${item.id}`);
         const productSnap = await get(productRef);
         
         if (!productSnap.exists()) {
@@ -65,12 +65,12 @@ export const orderService = {
         }
 
         const newStock = currentStock - item.quantity;
-        updates[`products/${item.productId}/stock`] = newStock;
+        updates[`products/${item.id}/stock`] = newStock;
 
         // Create inventory log for the sale
         const logRef = push(ref(rtdb, 'inventory_logs'));
         updates[`inventory_logs/${logRef.key}`] = {
-          productId: item.productId,
+          productId: item.id,
           productName: item.name,
           userId,
           userEmail,

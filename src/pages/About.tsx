@@ -12,23 +12,23 @@ export function About() {
           />
         </div>
         <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-6 text-center md:px-12">
-          <h1 className="mb-6 font-serif text-6xl font-bold leading-tight text-[var(--color-zora-ink)] md:text-8xl">
+          <h1 className="mb-6 font-serif text-5xl font-bold leading-tight text-[var(--color-zora-ink)] md:text-7xl lg:text-8xl">
             Our Story.
           </h1>
-          <p className="max-w-2xl text-xl font-medium text-[var(--color-zora-ink)]/80">
+          <p className="max-w-2xl text-lg font-medium text-[var(--color-zora-ink)]/80 md:text-xl">
             Bringing classic bakery joy to your neighborhood, one batch at a time.
           </p>
         </div>
       </section>
 
       {/* The Journey */}
-      <section className="py-24 bg-[var(--color-zora-alabaster)]">
+      <section className="py-16 md:py-24 bg-[var(--color-zora-alabaster)]">
         <div className="container mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-24 items-center">
             <div className="order-2 lg:order-1 flex flex-col justify-center">
               <span className="mb-4 text-xs font-bold tracking-widest uppercase text-[var(--color-zora-stone)]">How We Started</span>
-              <h2 className="mb-8 font-serif text-5xl font-bold text-[var(--color-zora-ink)]">A Love for Baking</h2>
-              <div className="space-y-6 text-lg font-medium leading-relaxed text-[var(--color-zora-stone)]">
+              <h2 className="mb-8 font-serif text-4xl font-bold text-[var(--color-zora-ink)] md:text-5xl">A Love for Baking</h2>
+              <div className="space-y-6 text-base font-medium leading-relaxed text-[var(--color-zora-stone)] md:text-lg">
                 <p>
                   Zora Bakes began with a simple desire: to recreate the nostalgic, comforting taste of classic American bakeries, but with a wholesome, modern twist. 
                 </p>
@@ -53,11 +53,11 @@ export function About() {
       </section>
 
       {/* The Ingredients */}
-      <section className="py-24 bg-[var(--color-zora-blush)]">
+      <section className="py-16 md:py-24 bg-[var(--color-zora-blush)]">
         <div className="container mx-auto px-6 md:px-12">
           <div className="mb-16 text-center">
-            <h2 className="mb-6 font-serif text-5xl font-bold text-[var(--color-zora-ink)]">Baked Fresh Daily</h2>
-            <p className="mx-auto max-w-2xl text-lg font-medium text-[var(--color-zora-ink)]/80">
+            <h2 className="mb-6 font-serif text-4xl font-bold text-[var(--color-zora-ink)] md:text-5xl">Baked Fresh Daily</h2>
+            <p className="mx-auto max-w-2xl text-base font-medium text-[var(--color-zora-ink)]/80 md:text-lg">
               We don't take shortcuts. Our treats are made from scratch using the finest ingredients we can find.
             </p>
           </div>
@@ -78,8 +78,8 @@ export function About() {
               }
             ].map((item, i) => (
               <div key={i} className="bg-white p-8 rounded-3xl shadow-sm border border-[var(--color-zora-ink)]/5">
-                <h3 className="mb-4 font-serif text-3xl font-bold text-[var(--color-zora-ink)]">{item.title}</h3>
-                <p className="font-medium leading-relaxed text-[var(--color-zora-stone)]">{item.desc}</p>
+                <h3 className="mb-4 font-serif text-2xl font-bold text-[var(--color-zora-ink)] md:text-3xl">{item.title}</h3>
+                <p className="text-sm font-medium leading-relaxed text-[var(--color-zora-stone)] md:text-base">{item.desc}</p>
               </div>
             ))}
           </div>

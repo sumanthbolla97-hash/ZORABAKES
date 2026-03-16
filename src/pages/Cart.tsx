@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { Trash2, Minus, Plus, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { Button } from "@/components/ui/Button";

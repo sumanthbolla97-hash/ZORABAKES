@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, CakeSlice, Heart, Sparkles } from "lucide-react";
 

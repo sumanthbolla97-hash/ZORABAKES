@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, loginWithGoogle } from "../firebase";
